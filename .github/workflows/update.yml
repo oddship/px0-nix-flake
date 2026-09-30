@@ -1,0 +1,62 @@
+name: Update px0
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: px0-upstream-update
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
+      - name: Find latest stable release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag=$(gh api repos/px0-ai/px0/releases/latest --jq .tag_name)
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Unexpected release tag: $tag" >&2; exit 1; }
+          current=$(sed -nE 's/^[[:space:]]*version = "([^"]+)";/\1/p' package.nix)
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          if [[ "$current" != "${tag#v}" ]]; then
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Refresh version, source hash, and Go dependency hash
+        if: steps.release.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: nix develop --command bash update.sh "$VERSION"
+      - name: Validate update
+        if: steps.release.outputs.changed == 'true'
+        run: |
+          nix fmt ./*.nix
+          nix flake check --all-systems --no-build
+          nix flake check -L
+          nix develop --command actionlint
+      - name: Publish validated update
+        if: steps.release.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.nix
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: update px0 to v${VERSION}"
+          gh auth setup-git
+          # A concurrent change to main makes this push fail safely.
+          git push origin HEAD:main
+          # GITHUB_TOKEN pushes don't trigger push workflows; run the multiarch checks explicitly.
+          gh workflow run checks.yml --ref main
