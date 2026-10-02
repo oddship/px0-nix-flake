@@ -11,12 +11,12 @@
 }:
 buildGo126Module (finalAttrs: {
   pname = "px0";
-  version = "0.1.13";
+  version = "0.1.14";
   src = fetchFromGitHub {
     owner = "px0-ai";
     repo = "px0";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-900EC8NxSFtuIzutyIzLMo2SCCg5ujEvgya8yccdLGw=";
+    hash = "sha256-Y+8aJpJ07cCnlCU1Lvnlrg0yEwYC3NL48WmxgzZP2ZY=";
   };
   vendorHash = "sha256-71+6I0u3en/Aw3PVMXx6dF+NQtCiE1T+kd7MENCKnlk=";
   subPackages = [ "." ];
