@@ -3,6 +3,7 @@
   stdenv,
   buildGo126Module,
   fetchFromGitHub,
+  fetchurl,
   nodejs,
   makeWrapper,
   git,
@@ -11,12 +12,12 @@
 }:
 buildGo126Module (finalAttrs: {
   pname = "px0";
-  version = "0.1.14";
+  version = "0.1.16";
   src = fetchFromGitHub {
     owner = "px0-ai";
     repo = "px0";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-Y+8aJpJ07cCnlCU1Lvnlrg0yEwYC3NL48WmxgzZP2ZY=";
+    hash = "sha256-fMV7V80CmgsGO/dL4xbEEtUBYpVBNxDCKyqy574w2KQ=";
   };
   vendorHash = "sha256-71+6I0u3en/Aw3PVMXx6dF+NQtCiE1T+kd7MENCKnlk=";
   subPackages = [ "." ];
@@ -37,6 +38,14 @@ buildGo126Module (finalAttrs: {
         'if err := fmt.Errorf("px0 is managed by Nix; update the px0-nix input and rebuild, or run nix profile upgrade px0"); err != nil {'
   '';
   preBuild = ''
+    # Upstream no longer includes this runtime asset in its source archive.
+    # Preserve the bundle from the last release that shipped it.
+    cp ${
+      fetchurl {
+        url = "https://raw.githubusercontent.com/px0-ai/px0/v0.1.14/web/vendor/mermaid-12.0.0.min.js";
+        hash = "sha256-KPynrm68fte7Y73mMTanS/7xTylqV+QDZX7rizKDYHM=";
+      }
+    } web/vendor/mermaid-12.0.0.min.js
     node scripts/build-web.js
     node --check web/app.js
   '';

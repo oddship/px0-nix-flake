@@ -1,5 +1,6 @@
 """Exercise the installed binary, embedded UI, and local repository API."""
 import json
+import gzip
 import os
 import pathlib
 import re
@@ -37,9 +38,16 @@ with tempfile.TemporaryDirectory() as root:
                     return response.read()
             assert b"app.js" in get("/")
             assert len(get("/static/app.js")) > 10000
+            mermaid_path = "/static/vendor/mermaid-12.0.0.min.js"
+            assert b"mermaid" in get(mermaid_path)
+            request = urllib.request.Request(address + mermaid_path, headers={"Accept-Encoding": "gzip"})
+            with urllib.request.urlopen(request, timeout=5) as response:
+                assert response.status == 200
+                assert response.headers["Content-Encoding"] == "gzip"
+                assert b"mermaid" in gzip.decompress(response.read())
             assert b"hello.txt" in get("/api/tree")
             assert isinstance(json.loads(get("/api/meta")), dict)
-            print("px0 version, Nix update guard, UI assets, and repository API passed")
+            print("px0 version, Nix update guard, UI and Mermaid assets, and repository API passed")
         finally:
             process.terminate()
             try:
