@@ -12,14 +12,14 @@
 }:
 buildGo126Module (finalAttrs: {
   pname = "px0";
-  version = "0.1.16";
+  version = "0.1.17";
   src = fetchFromGitHub {
     owner = "px0-ai";
     repo = "px0";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-fMV7V80CmgsGO/dL4xbEEtUBYpVBNxDCKyqy574w2KQ=";
+    hash = "sha256-kgIZw0bHlpIz9UHbCYfTFqO+HOpgIbv4ZONuwcLaf1E=";
   };
-  vendorHash = "sha256-71+6I0u3en/Aw3PVMXx6dF+NQtCiE1T+kd7MENCKnlk=";
+  vendorHash = "sha256-u2XAzdHz9RiEPgO9+iQoAzyMJMWM9o/I4nZSYDvXiOQ=";
   subPackages = [ "." ];
   env.CGO_ENABLED = 0;
   nativeBuildInputs = [
