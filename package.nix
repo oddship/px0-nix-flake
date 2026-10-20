@@ -12,14 +12,14 @@
 }:
 buildGo126Module (finalAttrs: {
   pname = "px0";
-  version = "0.1.17";
+  version = "0.1.19";
   src = fetchFromGitHub {
     owner = "px0-ai";
     repo = "px0";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-kgIZw0bHlpIz9UHbCYfTFqO+HOpgIbv4ZONuwcLaf1E=";
+    hash = "sha256-ogt7wfYw1Vhsl5ACqPJyyAReeuss26qOW2yROCZTtXY=";
   };
-  vendorHash = "sha256-u2XAzdHz9RiEPgO9+iQoAzyMJMWM9o/I4nZSYDvXiOQ=";
+  vendorHash = "sha256-GJAd0mo4s7ybFizzXvfT79CyDR/qC6BkbUtS/2y1XEI=";
   subPackages = [ "." ];
   env.CGO_ENABLED = 0;
   # Upstream fixed multiline import stripping in v0.1.19.
