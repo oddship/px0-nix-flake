@@ -22,6 +22,8 @@ buildGo126Module (finalAttrs: {
   vendorHash = "sha256-u2XAzdHz9RiEPgO9+iQoAzyMJMWM9o/I4nZSYDvXiOQ=";
   subPackages = [ "." ];
   env.CGO_ENABLED = 0;
+  # Upstream's Node fallback only strips the first line of multiline imports.
+  patches = [ ./patches/node-multiline-imports.patch ];
   nativeBuildInputs = [
     nodejs
     makeWrapper
@@ -48,6 +50,9 @@ buildGo126Module (finalAttrs: {
     } web/vendor/mermaid-12.0.0.min.js
     node scripts/build-web.js
     node --check web/app.js
+    if [ -f web/workbench.js ]; then
+      node --check web/workbench.js
+    fi
   '';
   nativeCheckInputs = [ git ];
   preCheck = ''
