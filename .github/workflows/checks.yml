@@ -30,3 +30,9 @@ jobs:
         run: nix flake check -L
       - name: Lint workflows
         run: nix develop --command actionlint
+      - name: Validate latest upstream update without publishing
+        if: matrix.runner == 'ubuntu-latest'
+        run: |
+          nix develop --command bash update.sh
+          nix flake check --all-systems --no-build
+          nix flake check -L
