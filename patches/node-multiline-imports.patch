@@ -1,0 +1,13 @@
+--- a/scripts/build-web.js
++++ b/scripts/build-web.js
+@@ -99,8 +99,8 @@
+       else declaredIn.set(m[1], rel);
+     }
+ 
+-    // Strip ES import declarations
+-    src = src.replace(/^\s*import\s+.*?;?\s*$/gm, '');
++    // Strip complete declarations, including multiline named imports.
++    src = src.replace(/^\s*import\s+(?:(?:(?:\*\s+as\s+\w+)|(?:\{[^}]*\})|(?:\w+))\s+from\s+)?['"](\.[^'"]+)['"];?/gm, '');
+ 
+     // Replace `export const X =` / `export function X(` / `export async function X(` / `export let X`
+     src = src.replace(/^\s*export\s+(?:async\s+)?function\s+/gm, (m) => m.replace('export ', ''));
