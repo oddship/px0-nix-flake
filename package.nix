@@ -22,8 +22,10 @@ buildGo126Module (finalAttrs: {
   vendorHash = "sha256-u2XAzdHz9RiEPgO9+iQoAzyMJMWM9o/I4nZSYDvXiOQ=";
   subPackages = [ "." ];
   env.CGO_ENABLED = 0;
-  # Upstream's Node fallback only strips the first line of multiline imports.
-  patches = [ ./patches/node-multiline-imports.patch ];
+  # Upstream fixed multiline import stripping in v0.1.19.
+  patches = lib.optionals (lib.versionOlder finalAttrs.version "0.1.19") [
+    ./patches/node-multiline-imports.patch
+  ];
   nativeBuildInputs = [
     nodejs
     makeWrapper
