@@ -34,13 +34,23 @@ buildGo126Module (finalAttrs: {
     "-s"
     "-w"
   ];
-  postPatch = ''
-    # Nix store binaries cannot replace themselves. Keep updates declarative.
-    substituteInPlace main.go \
-      --replace-fail 'go autoUpdate(version)' '/* Updates are managed by the Nix flake. */' \
-      --replace-fail 'if err := runSelfUpdate(version); err != nil {' \
-        'if err := fmt.Errorf("px0 is managed by Nix; update the px0-nix input and rebuild, or run nix profile upgrade px0"); err != nil {'
-  '';
+  postPatch =
+    let
+      legacyUpdater = lib.versionOlder finalAttrs.version "0.1.20";
+      autoUpdate = if legacyUpdater then "autoUpdate" else "update.AutoUpdate";
+      selfUpdate = if legacyUpdater then "runSelfUpdate" else "update.RunSelfUpdate";
+    in
+    ''
+      # Nix store binaries cannot replace themselves. Keep updates declarative.
+      substituteInPlace main.go \
+        --replace-fail 'go ${autoUpdate}(version)' '/* Updates are managed by the Nix flake. */' \
+        --replace-fail 'if err := ${selfUpdate}(version); err != nil {' \
+          'if err := fmt.Errorf("px0 is managed by Nix; update the px0-nix input and rebuild, or run nix profile upgrade px0"); err != nil {'
+    ''
+    + lib.optionalString (!legacyUpdater) ''
+      # All updater references above are removed, so the extracted updater import is unused.
+      substituteInPlace main.go --replace-fail '"px0/internal/update"' ""
+    '';
   preBuild = ''
     # Upstream no longer includes this runtime asset in its source archive.
     # Preserve the bundle from the last release that shipped it.
